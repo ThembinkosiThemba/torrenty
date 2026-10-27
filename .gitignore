@@ -1,0 +1,23 @@
+# Binaries
+/torrenty
+*.exe
+*.exe~
+/bin/
+/dist/
+
+# Go
+*.test
+*.out
+coverage.*
+
+# Output
+*.torrent
+*.aria2
+*.log
+
+# Editors / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db

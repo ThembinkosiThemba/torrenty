@@ -1,3 +1,5 @@
+// Command torrenty is a small TUI for finding movies and series and saving
+// their .torrent files.
 package main
 
 import (
@@ -7,18 +9,18 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+
+	"torrenty/internal"
 )
 
 func main() {
-	dir := flag.String("dir", defaultDownloadDir(), "directory to save downloads and .torrent files in")
+	dir := flag.String("dir", defaultDownloadDir(), "directory to save .torrent files in")
 	flag.Parse()
 
+	// Anything printed to the terminal would draw over the TUI.
 	log.SetOutput(io.Discard)
 
-	dl := newDownloader(*dir)
-	defer dl.Close()
-
-	if err := runCLI(newApibay(), dl); err != nil {
+	if err := internal.Run(*dir); err != nil {
 		fmt.Fprintln(os.Stderr, "torrenty:", err)
 		os.Exit(1)
 	}
