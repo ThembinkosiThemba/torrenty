@@ -11,6 +11,8 @@ go vet ./...                              # lint
 gofmt -w .                                # format
 ```
 
+A Claude Code Stop hook (`.claude/settings.json`) runs `packaging/windows/install.ps1` after every turn. It rebuilds and reinstalls torrenty only when the source changed. Other agents should run the script themselves after changing code: `powershell -File packaging/windows/install.ps1`.
+
 Go 1.26.5 is installed locally. Don't change the `go` directive in `go.mod`, and set `GOTOOLCHAIN=local` so Go never downloads a toolchain.
 
 ## Layout

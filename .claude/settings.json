@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"$CLAUDE_PROJECT_DIR/packaging/windows/install.ps1\" -Hook",
+            "timeout": 180,
+            "statusMessage": "Rebuilding torrenty..."
+          }
+        ]
+      }
+    ]
+  }
+}

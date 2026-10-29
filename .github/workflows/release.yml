@@ -1,0 +1,76 @@
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - { goos: windows, goarch: amd64 }
+          - { goos: windows, goarch: arm64 }
+          - { goos: linux, goarch: amd64 }
+          - { goos: linux, goarch: arm64 }
+    env:
+      GOOS: ${{ matrix.goos }}
+      GOARCH: ${{ matrix.goarch }}
+      CGO_ENABLED: "0"
+      NAME: torrenty-${{ github.ref_type == 'tag' && github.ref_name || 'dev' }}-${{ matrix.goos }}-${{ matrix.goarch }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Vet
+        run: GOOS= GOARCH= go vet ./...
+
+      - name: Build
+        run: |
+          ext=""; [ "$GOOS" = windows ] && ext=".exe"
+          mkdir -p "dist/$NAME"
+          go build -trimpath -ldflags "-s -w" -o "dist/$NAME/torrenty$ext" ./cmd/torrenty
+          cp README.md LICENSE "dist/$NAME/"
+
+      - name: Package (windows)
+        if: matrix.goos == 'windows'
+        working-directory: dist
+        run: zip -r "$NAME.zip" "$NAME"
+
+      - name: Package (linux)
+        if: matrix.goos == 'linux'
+        working-directory: dist
+        run: |
+          install -m 755 ../packaging/linux/install.sh "$NAME/install.sh"
+          cp ../packaging/icon.png "$NAME/torrenty.png"
+          tar -czf "$NAME.tar.gz" "$NAME"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.NAME }}
+          path: dist/${{ env.NAME }}.*
+
+  release:
+    if: github.ref_type == 'tag'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          generate_release_notes: true
